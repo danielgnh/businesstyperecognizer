@@ -27,25 +27,25 @@
                     {{__('Dashboard')}}
                 </flux:navbar.item>
                 <flux:navbar.item icon="plus" href="{{ route('companies.create') }}" :current="request()->routeIs('companies.create')">
-                    {{__('Analyze Company')}}
+                    {{__('New analysis')}}
                 </flux:navbar.item>
-                <flux:navbar.item
-                    icon="building-office"
-                    href="{{ route('companies.index') }}"
-                    :current="request()->routeIs('companies.index') || request()->routeIs('companies.show') || request()->routeIs('companies.edit')"
-                    badge="{{ $companiesCount ?? null }}"
-                >
-                    Companies
-                </flux:navbar.item>
-                <flux:separator vertical variant="subtle" class="my-2"/>
                 <flux:dropdown class="max-lg:hidden">
-                    <flux:navbar.item icon:trailing="chevron-down">Analysis</flux:navbar.item>
+                    <flux:navbar.item
+                        icon="building-office"
+                        icon:trailing="chevron-down"
+                        :current="request()->routeIs('companies.index') || request()->routeIs('companies.show') || request()->routeIs('companies.edit')"
+                        badge="{{ $companiesCount ?? null }}"
+                    >
+                        Companies
+                    </flux:navbar.item>
                     <flux:navmenu>
+                        <flux:navmenu.item href="{{ route('companies.index') }}" :current="request()->routeIs('companies.index')">All Companies</flux:navmenu.item>
                         <flux:navmenu.item href="{{ route('companies.classified') }}" :current="request()->routeIs('companies.classified')">Classified</flux:navmenu.item>
                         <flux:navmenu.item href="{{ route('companies.pending') }}" :current="request()->routeIs('companies.pending')">Pending</flux:navmenu.item>
                         <flux:navmenu.item href="{{ route('companies.processing') }}" :current="request()->routeIs('companies.processing')">Processing</flux:navmenu.item>
                     </flux:navmenu>
                 </flux:dropdown>
+                <flux:separator vertical variant="subtle" class="my-2"/>
             </flux:navbar>
             <flux:spacer />
             <flux:dropdown position="top" align="start">
