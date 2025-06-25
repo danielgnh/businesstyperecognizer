@@ -1,0 +1,407 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Laravel 12 + Livewire 3 + Blade Development Rules
+
+## Core Principles
+- Follow Laravel conventions and best practices strictly
+- Write clean, readable, and maintainable code
+- Ensure all code is testable and follows SOLID principles
+- Use modern PHP 8.3+ features and syntax
+- Follow PSR-12 coding standards
+- Apply Rector conventions for modern PHP practices
+
+## Laravel Conventions
+
+### Models
+- Use singular PascalCase names (User, BlogPost, OrderItem)
+- Place in `app/Models` directory
+- Use Eloquent conventions for relationships and attributes
+- Always add proper type hints and return types
+- Use `protected $guarded = [];` arrays to except fillables on model
+- Add proper docblocks for properties and methods
+- Use enum casting for status fields when appropriate
+- Implement proper accessors/mutators with modern syntax
+
+```php
+class User extends Model
+{
+    protected $guarded = [];
+    
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+    
+    public function posts(): HasMany
+    {
+        return $this->hasMany(Post::class);
+    }
+}
+```
+
+### Controllers
+- Use plural PascalCase with `Controller` suffix (UsersController, BlogPostsController)
+- Keep controllers thin - delegate business logic to services/actions
+- Use Form Requests for validation
+- Return proper HTTP status codes
+- Use resource controllers when appropriate
+- Type hint all parameters and return types
+
+```php
+class UsersController extends Controller
+{
+    public function store(StoreUserRequest $request): RedirectResponse
+    {
+        $user = $this->userService->create($request->validated());
+        
+        return redirect()->route('users.show', $user)
+            ->with('success', 'User created successfully');
+    }
+}
+```
+
+### Services and Actions
+- Use descriptive names ending with `Service` or `Action`
+- Place in `app/Services` or `app/Actions` directories
+- Single responsibility principle
+- Always add return types and type hints
+- Make methods static when no state is needed
+
+```php
+class CreateUserAction
+{
+    public function execute(array $data): User
+    {
+        return User::create($data);
+    }
+}
+```
+
+### Form Requests
+- Use descriptive names with `Request` suffix (StoreUserRequest, UpdatePostRequest)
+- Place in `app/Http/Requests` directory
+- Always implement rules() and authorize() methods
+- Add custom error messages when needed
+- Use proper validation rules
+
+```php
+class StoreUserRequest extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+    
+    public function rules(): array
+    {
+        return [
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'unique:users'],
+        ];
+    }
+}
+```
+
+### Resources
+- Use descriptive names with `Resource` suffix
+- Place in `app/Http/Resources` directory
+- Always add return types
+- Use resource collections for arrays
+
+### Routes
+- Use resource routes when possible
+- Group related routes
+- Use meaningful route names
+- Apply middleware appropriately
+- Use route model binding
+
+```php
+Route::middleware('auth')->group(function () {
+    Route::resource('users', UsersController::class);
+    Route::get('/dashboard', DashboardController::class)->name('dashboard');
+});
+```
+
+### Migrations
+- Use descriptive names with timestamps
+- Use proper column types and constraints
+- Add indexes where needed
+- Use foreign key constraints
+- Always add `down()` method
+
+### Jobs, Events, Listeners
+- Use descriptive names (SendWelcomeEmail, UserRegistered, LogUserActivity)
+- Place in appropriate directories
+- Implement proper interfaces
+- Add type hints and return types
+
+## Livewire 3 Conventions
+
+### Components
+- Use PascalCase for class names (UserProfile, CreatePost)
+- Use kebab-case for view names (user-profile, create-post)
+- Place in `app/Livewire` directory
+- Always add type hints for properties and methods
+- Use proper lifecycle hooks
+
+```php
+class UserProfile extends Component
+{
+    public User $user;
+    public string $name = '';
+    public string $email = '';
+    
+    public function mount(User $user): void
+    {
+        $this->user = $user;
+        $this->name = $user->name;
+        $this->email = $user->email;
+    }
+    
+    public function save(): void
+    {
+        $this->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $this->user->id,
+        ]);
+        
+        $this->user->update([
+            'name' => $this->name,
+            'email' => $this->email,
+        ]);
+        
+        $this->dispatch('user-updated');
+    }
+    
+    public function render(): View
+    {
+        return view('livewire.user-profile');
+    }
+}
+```
+
+### Properties
+- Use camelCase for public properties
+- Add proper type declarations
+- Use `#[Validate]` attribute when appropriate
+- Initialize with default values when needed
+
+### Methods
+- Use camelCase for method names
+- Add proper type hints and return types
+- Use descriptive method names
+- Keep methods focused and single-purpose
+
+### Events
+- Use kebab-case for event names
+- Use descriptive event names
+- Pass minimal data with events
+
+## Blade Conventions
+
+### Templates
+- Use kebab-case for file names
+- Place in logical directory structure under `resources/views`
+- Use proper Blade directives
+- Escape output by default (use `{!! !!}` only when necessary)
+- Use components over includes when possible
+
+### Components
+- Use PascalCase for component class names
+- Use kebab-case for component tags
+- Place in `app/View/Components` and `resources/views/components`
+- Always add type hints for properties
+
+```php
+class UserCard extends Component
+{
+    public function __construct(
+        public User $user,
+        public bool $showEmail = false
+    ) {}
+    
+    public function render(): View
+    {
+        return view('components.user-card');
+    }
+}
+```
+
+## Code Quality Standards
+
+### Type Declarations
+- Always use strict types: `declare(strict_types=1);`
+- Add type hints for all parameters
+- Add return types for all methods
+- Use union types when appropriate (string|int)
+- Use nullable types correctly (?string)
+
+### Modern PHP Practices
+- Use short array syntax: `[]` instead of `array()`
+- Use null coalescing operator: `??`
+- Use spaceship operator for comparisons: `<=>`
+- Use arrow functions for simple callbacks
+- Use match expressions instead of switch when appropriate
+- Use named arguments for clarity
+- Use attributes instead of docblock annotations
+
+### Error Handling
+- Use specific exception types
+- Always handle exceptions appropriately
+- Log errors properly
+- Return meaningful error messages
+
+### Database
+- Use Eloquent ORM properly
+- Avoid N+1 queries (use eager loading)
+- Use database transactions for complex operations
+- Add proper indexes
+- Use soft deletes when appropriate
+
+## Testing with Pest
+
+### Test Structure
+- Use descriptive test names
+- Group related tests in test classes
+- Use `it()` for feature tests and behavior descriptions
+- Use `test()` for unit tests
+- Place feature tests in `tests/Feature`
+- Place unit tests in `tests/Unit`
+
+```php
+it('can create a new user', function () {
+    $userData = [
+        'name' => 'John Doe',
+        'email' => 'john@example.com',
+        'password' => 'password123',
+    ];
+    
+    $response = $this->post('/users', $userData);
+    
+    $response->assertRedirect();
+    $this->assertDatabaseHas('users', [
+        'name' => 'John Doe',
+        'email' => 'john@example.com',
+    ]);
+});
+
+test('UserService can create user', function () {
+    $service = new UserService();
+    $userData = ['name' => 'John', 'email' => 'john@test.com'];
+    
+    $user = $service->create($userData);
+    
+    expect($user)->toBeInstanceOf(User::class)
+        ->and($user->name)->toBe('John');
+});
+```
+
+### Test Naming
+- Use descriptive test names that explain the behavior
+- Start with action verbs (can, should, throws, returns)
+- Include the expected outcome
+
+### Test Organization
+- Use datasets for testing multiple scenarios
+- Use beforeEach/afterEach for setup/cleanup
+- Mock external dependencies
+- Test both happy path and edge cases
+
+### Livewire Testing
+- Use Livewire testing helpers
+- Test component interactions
+- Test property updates
+- Test event dispatching
+
+```php
+it('can update user profile', function () {
+    $user = User::factory()->create();
+    
+    Livewire::actingAs($user)
+        ->test(UserProfile::class, ['user' => $user])
+        ->set('name', 'New Name')
+        ->call('save')
+        ->assertHasNoErrors()
+        ->assertDispatched('user-updated');
+        
+    expect($user->fresh()->name)->toBe('New Name');
+});
+```
+
+## File Organization
+
+### Directory Structure
+```
+app/
+├── Actions/
+├── Services/
+├── Http/
+│   ├── Controllers/
+│   ├── Requests/
+│   ├── Resources/
+│   └── Middleware/
+├── Livewire/
+├── Models/
+├── View/
+│   └── Components/
+└── ...
+
+resources/
+├── views/
+│   ├── components/
+│   ├── livewire/
+│   └── ...
+└── ...
+
+tests/
+├── Feature/
+│   ├── Http/
+│   └── Livewire/
+└── Unit/
+    ├── Services/
+    └── Models/
+```
+
+## Documentation
+- Add docblocks for all public methods
+- Document complex business logic
+- Use proper PHPDoc tags (@param, @return, @throws)
+- Keep comments up to date with code changes
+
+## Performance
+- Use database indexes appropriately
+- Implement proper caching strategies
+- Use lazy loading for collections
+- Optimize Livewire component updates
+- Use database transactions for multiple operations
+
+## Security
+- Always validate and sanitize input
+- Use Laravel's built-in security features
+- Implement proper authorization
+- Use CSRF protection
+- Sanitize output in Blade templates
+- Use parameterized queries (Eloquent does this automatically)
+
+## Formatting
+- Use Laravel Pint for code formatting
+- Configure IDE to follow PSR-12 standards
+- Use consistent indentation (4 spaces)
+- Keep line length reasonable (120 characters max)
+- Add blank lines for readability
+
+## Code Review Guidelines
+- Check for proper error handling
+- Verify test coverage
+- Ensure following Laravel conventions
+- Check for security vulnerabilities
+- Verify performance implications
+- Ensure code is self-documenting
+
+Remember: Always prioritize code readability, maintainability, and testability over clever or complex solutions.
