@@ -2,9 +2,6 @@
 
 namespace App\Livewire\Actions;
 
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
-
 class Logout
 {
     /**
@@ -12,11 +9,20 @@ class Logout
      */
     public function __invoke()
     {
-        Auth::guard('web')->logout();
+        $this->authManager->guard('web')->logout();
 
-        Session::invalidate();
-        Session::regenerateToken();
+        $this->sessionManager->invalidate();
+        $this->sessionManager->regenerateToken();
 
-        return redirect('/');
+        return $this->redirector->to('/');
+    }
+
+    public function logout()
+    {
+        $this->guard->logout();
+        $this->sessionManager->invalidate();
+        $this->sessionManager->regenerateToken();
+
+        return $this->redirector->to('/');
     }
 }
