@@ -404,4 +404,7 @@ tests/
 - Verify performance implications
 - Ensure code is self-documenting
 
+
+After code implementation:
+run command: composer format which includes larastan, pint, and  recotr.
 Remember: Always prioritize code readability, maintainability, and testability over clever or complex solutions.
