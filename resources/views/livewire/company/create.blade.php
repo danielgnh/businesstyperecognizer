@@ -7,9 +7,9 @@
                 Add a company to analyze its business type (B2B, B2C, or Hybrid)
             </flux:text>
         </div>
-        <flux:button 
-            href="{{ route('companies.index') }}" 
-            variant="ghost" 
+        <flux:button
+            href="{{ route('companies.index') }}"
+            variant="ghost"
             icon="arrow-left"
         >
             Back to Companies
@@ -22,57 +22,55 @@
             <!-- Company Details Section -->
             <flux:fieldset>
                 <flux:legend>Company Details</flux:legend>
-                
+
                 <div class="space-y-4">
                     <!-- Website URL Input -->
-                    <flux:input 
+                    <flux:input
                         wire:model.live.debounce.500ms="website"
-                        label="Website URL" 
+                        label="Company's Website URL"
                         type="url"
                         placeholder="https://example.com"
                         icon="globe-alt"
-                        description="Enter the company's main website URL"
                         :invalid="$errors->has('website')"
                         required
                     />
                     @error('website')
                         <flux:error>{{ $message }}</flux:error>
                     @enderror
-                    
+
                     <!-- Company Name Input -->
-                    <flux:input 
+                    <flux:input
                         wire:model.live="name"
-                        label="Company Name" 
+                        label="Company Name"
                         placeholder="Acme Corp"
                         icon="building-office"
-                        description="The official company name (auto-filled from website)"
                         :invalid="$errors->has('name')"
                         required
                     />
                     @error('name')
                         <flux:error>{{ $message }}</flux:error>
                     @enderror
-                    
+
                     <!-- Description (Optional) -->
-                    <flux:textarea 
-                        wire:model="description"
-                        label="Description (Optional)" 
-                        placeholder="Brief description of what the company does..."
-                        rows="3"
-                        description="Optional description to help with analysis"
-                    />
+{{--                    <flux:textarea--}}
+{{--                        wire:model="description"--}}
+{{--                        label="Description (Optional)"--}}
+{{--                        placeholder="Brief description of what the company does..."--}}
+{{--                        rows="3"--}}
+{{--                        description="Optional description to help with analysis"--}}
+{{--                    />--}}
                 </div>
             </flux:fieldset>
 
             <!-- Analysis Options -->
             <flux:fieldset>
-                <flux:legend>Analysis Options</flux:legend>
-                
-                <flux:checkbox 
-                    wire:model="autoAnalyze"
-                    label="Start analysis automatically"
-                    description="Immediately begin analyzing this company after adding it"
-                />
+                <flux:fieldset>
+                    <flux:legend>Analysis options</flux:legend>
+                    <div class="space-y-4">
+                        <flux:switch wire:model.live="autoAnalyze" label="Start analysis automatically" description="Immediately begin analyzing this company after adding it" />
+{{--                        <flux:separator variant="subtle" />--}}
+                    </div>
+                </flux:fieldset>
             </flux:fieldset>
 
             <!-- Analysis Preview -->
@@ -112,29 +110,22 @@
 
             <!-- Form Actions -->
             <div class="flex items-center justify-between pt-6 border-t border-zinc-200 dark:border-zinc-700">
-                <flux:button 
+                <flux:button
                     type="button"
-                    variant="ghost" 
+                    variant="ghost"
                     href="{{ route('companies.index') }}"
                 >
                     Cancel
                 </flux:button>
-                
+
                 <div class="flex items-center space-x-3">
-                    @if($autoAnalyze)
-                        <flux:text size="sm" class="text-zinc-500">
-                            Analysis will start automatically
-                        </flux:text>
-                    @endif
-                    
-                    <flux:button 
-                        type="submit" 
+                    <flux:button
+                        type="submit"
                         variant="primary"
                         icon="plus"
                         wire:loading.attr="disabled"
                     >
-                        <span wire:loading.remove>Add Company</span>
-                        <span wire:loading>Adding...</span>
+                        <span wire:loading.remove>{{__('Analyze Company')}}</span>
                     </flux:button>
                 </div>
             </div>
@@ -148,7 +139,7 @@
                 <flux:icon.question-mark-circle class="w-5 h-5 text-zinc-500" />
                 <span>How it works</span>
             </flux:heading>
-            
+
             <div class="space-y-3">
                 <div class="flex items-start space-x-3">
                     <div class="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
@@ -161,7 +152,7 @@
                         </flux:text>
                     </div>
                 </div>
-                
+
                 <div class="flex items-start space-x-3">
                     <div class="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
                         2
@@ -173,7 +164,7 @@
                         </flux:text>
                     </div>
                 </div>
-                
+
                 <div class="flex items-start space-x-3">
                     <div class="flex-shrink-0 w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-sm font-medium">
                         3
@@ -188,4 +179,4 @@
             </div>
         </div>
     </flux:card>
-</div> 
+</div>
