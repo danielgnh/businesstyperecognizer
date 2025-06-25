@@ -23,34 +23,34 @@
             <flux:brand :href="route('dashboard')" logo="https://fluxui.dev/img/demo/logo.png" name="BusinessType AI" class="max-lg:hidden dark:hidden" />
             <flux:brand :href="route('dashboard')" logo="https://fluxui.dev/img/demo/dark-mode-logo.png" name="BusinessType AI" class="max-lg:hidden! hidden dark:flex" />
             <flux:navbar class="-mb-px max-lg:hidden">
-                <flux:navbar.item
-                    icon="home"
-                    href="{{ route('dashboard') }}"
-                    :current="request()->routeIs('dashboard')"
-                >
-                    Dashboard
+                <flux:navbar.item icon="home" href="{{ route('dashboard') }}" :current="request()->routeIs('dashboard')">
+                    {{__('Dashboard')}}
                 </flux:navbar.item>
-                <flux:navbar.item icon="inbox" badge="12" href="#">Inbox</flux:navbar.item>
-                <flux:navbar.item icon="document-text" href="#">Documents</flux:navbar.item>
-                <flux:navbar.item icon="calendar" href="#">Calendar</flux:navbar.item>
+                <flux:navbar.item icon="plus" href="{{ route('companies.create') }}" :current="request()->routeIs('companies.create')">
+                    {{__('Analyze Company')}}
+                </flux:navbar.item>
+                <flux:navbar.item
+                    icon="building-office"
+                    href="{{ route('companies.index') }}"
+                    :current="request()->routeIs('companies.index') || request()->routeIs('companies.show') || request()->routeIs('companies.edit')"
+                    badge="{{ $companiesCount ?? null }}"
+                >
+                    Companies
+                </flux:navbar.item>
                 <flux:separator vertical variant="subtle" class="my-2"/>
                 <flux:dropdown class="max-lg:hidden">
-                    <flux:navbar.item icon:trailing="chevron-down">Favorites</flux:navbar.item>
+                    <flux:navbar.item icon:trailing="chevron-down">Analysis</flux:navbar.item>
                     <flux:navmenu>
-                        <flux:navmenu.item href="#">Marketing site</flux:navmenu.item>
-                        <flux:navmenu.item href="#">Android app</flux:navmenu.item>
-                        <flux:navmenu.item href="#">Brand guidelines</flux:navmenu.item>
+                        <flux:navmenu.item href="{{ route('companies.classified') }}" :current="request()->routeIs('companies.classified')">Classified</flux:navmenu.item>
+                        <flux:navmenu.item href="{{ route('companies.pending') }}" :current="request()->routeIs('companies.pending')">Pending</flux:navmenu.item>
+                        <flux:navmenu.item href="{{ route('companies.processing') }}" :current="request()->routeIs('companies.processing')">Processing</flux:navmenu.item>
                     </flux:navmenu>
                 </flux:dropdown>
             </flux:navbar>
             <flux:spacer />
-            <flux:navbar class="me-4">
-                <flux:navbar.item icon="magnifying-glass" href="#" label="Search" />
-                <flux:navbar.item class="max-lg:hidden" icon="cog-6-tooth" href="#" label="Settings" />
-                <flux:navbar.item class="max-lg:hidden" icon="information-circle" href="#" label="Help" />
-            </flux:navbar>
             <flux:dropdown position="top" align="start">
                 <flux:profile
+                    icon:trailing="chevron-up-down"
                     avatar="https://ui-avatars.com/api/?name={{ urlencode(auth()->user()->name) }}&background=0D8ABC&color=fff"
                     name="{{ auth()->user()->name }}"
                 />
