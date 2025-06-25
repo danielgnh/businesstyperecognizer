@@ -37,7 +37,7 @@ class Index extends Component
             'email' => $this->email,
         ]);
 
-        $this->sessionManager->flash('message', 'Profile updated successfully!');
+        session()->flash('message', 'Profile updated successfully!');
     }
 
     public function render(): View

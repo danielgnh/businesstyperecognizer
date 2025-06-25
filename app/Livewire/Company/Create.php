@@ -74,12 +74,12 @@ class Create extends Component
             // TODO: Dispatch analysis job
             // AnalyzeCompanyJob::dispatch($company);
 
-            $this->sessionManager->flash('message', 'Company added successfully and analysis started!');
+            session()->flash('message', 'Company added successfully and analysis started!');
         } else {
-            $this->sessionManager->flash('message', 'Company added successfully!');
+            session()->flash('message', 'Company added successfully!');
         }
 
-        $this->redirect($this->urlGenerator->route('companies.show', $company), navigate: true);
+        $this->redirect(route('companies.show', $company), navigate: true);
     }
 
     private function extractCompanyNameFromWebsite(string $website): void

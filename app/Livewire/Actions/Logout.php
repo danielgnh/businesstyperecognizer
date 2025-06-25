@@ -9,20 +9,20 @@ class Logout
      */
     public function __invoke()
     {
-        $this->authManager->guard('web')->logout();
+        auth()->guard('web')->logout();
 
-        $this->sessionManager->invalidate();
-        $this->sessionManager->regenerateToken();
+        session()->invalidate();
+        session()->regenerateToken();
 
-        return $this->redirector->to('/');
+        return redirect('/');
     }
 
     public function logout()
     {
-        $this->guard->logout();
-        $this->sessionManager->invalidate();
-        $this->sessionManager->regenerateToken();
+        auth()->logout();
+        session()->invalidate();
+        session()->regenerateToken();
 
-        return $this->redirector->to('/');
+        return redirect('/');
     }
 }

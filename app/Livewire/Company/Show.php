@@ -39,6 +39,7 @@ class Show extends Component
     {
         if ($this->company->status === CompanyStatus::PROCESSING) {
             session()->flash('error', 'Company is already being analyzed.');
+
             return;
         }
 
@@ -48,7 +49,7 @@ class Show extends Component
         // TODO: Dispatch analysis job
         // AnalyzeCompanyJob::dispatch($this->company);
 
-        session()->flash('message', 'Analysis started for ' . $this->company->name);
+        session()->flash('message', 'Analysis started for '.$this->company->name);
         $this->refreshCompany();
     }
 

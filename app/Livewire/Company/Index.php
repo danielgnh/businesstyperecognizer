@@ -66,7 +66,7 @@ class Index extends Component
     public function updatedSelectAll(bool $value): void
     {
         if ($value) {
-            $this->selectedCompanies = collect($this->companies()->items())->pluck('id')->toArray();
+            $this->selectedCompanies = (new \Illuminate\Support\Collection($this->companies()->items()))->pluck('id')->toArray();
         } else {
             $this->selectedCompanies = [];
         }
@@ -88,10 +88,11 @@ class Index extends Component
     {
         if (empty($this->selectedCompanies)) {
             $this->addError('selection', 'Please select companies to analyze.');
+
             return;
         }
 
-        $companies = Company::whereIn('id', $this->selectedCompanies)->get();
+        $companies = \App\Models\Company::query()->whereIn('id', $this->selectedCompanies)->get();
 
         foreach ($companies as $company) {
             // TODO: Dispatch analysis job
@@ -99,7 +100,7 @@ class Index extends Component
             $company->update(['status' => CompanyStatus::PENDING]);
         }
 
-        session()->flash('message', count($this->selectedCompanies) . ' companies queued for analysis.');
+        session()->flash('message', count($this->selectedCompanies).' companies queued for analysis.');
 
         $this->selectedCompanies = [];
         $this->selectAll = false;
@@ -109,12 +110,13 @@ class Index extends Component
     {
         if (empty($this->selectedCompanies)) {
             $this->addError('selection', 'Please select companies to delete.');
+
             return;
         }
 
-        Company::whereIn('id', $this->selectedCompanies)->delete();
+        \App\Models\Company::query()->whereIn('id', $this->selectedCompanies)->delete();
 
-        session()->flash('message', count($this->selectedCompanies) . ' companies deleted.');
+        session()->flash('message', count($this->selectedCompanies).' companies deleted.');
 
         $this->selectedCompanies = [];
         $this->selectAll = false;
@@ -134,9 +136,9 @@ class Index extends Component
         return Company::query()
             ->when($this->search, function (Builder $query) {
                 $query->where(function (Builder $q) {
-                    $q->where('name', 'like', '%' . $this->search . '%')
-                        ->orWhere('website', 'like', '%' . $this->search . '%')
-                        ->orWhere('domain', 'like', '%' . $this->search . '%');
+                    $q->where('name', 'like', '%'.$this->search.'%')
+                        ->orWhere('website', 'like', '%'.$this->search.'%')
+                        ->orWhere('domain', 'like', '%'.$this->search.'%');
                 });
             })
             ->when($this->statusFilter, function (Builder $query) {
@@ -164,9 +166,9 @@ class Index extends Component
     #[Computed]
     public function statusOptions(): array
     {
-        return collect(CompanyStatus::cases())
-            ->mapWithKeys(fn(CompanyStatus $status) => [
-                $status->value => $status->label()
+        return (new \Illuminate\Support\Collection(CompanyStatus::cases()))
+            ->mapWithKeys(fn (CompanyStatus $status) => [
+                $status->value => $status->label(),
             ])
             ->toArray();
     }
@@ -174,9 +176,9 @@ class Index extends Component
     #[Computed]
     public function classificationOptions(): array
     {
-        $options = collect(CompanyClassification::cases())
-            ->mapWithKeys(fn(CompanyClassification $classification) => [
-                $classification->value => $classification->label()
+        $options = (new \Illuminate\Support\Collection(CompanyClassification::cases()))
+            ->mapWithKeys(fn (CompanyClassification $classification) => [
+                $classification->value => $classification->label(),
             ])
             ->toArray();
 
