@@ -8,19 +8,14 @@ use App\Models\Company;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Attributes\Title;
-use Livewire\Attributes\Validate;
 use Livewire\Component;
 
 #[Title('Add Company')]
 class Create extends Component
 {
-    #[Validate]
     public string $name = '';
 
-    #[Validate]
     public string $website = '';
-
-    public string $description = '';
 
     public bool $autoAnalyze = true;
 
@@ -34,7 +29,6 @@ class Create extends Component
                 'max:255',
                 Rule::unique('companies', 'website'),
             ],
-            'description' => ['nullable', 'string', 'max:1000'],
         ];
     }
 
@@ -48,15 +42,22 @@ class Create extends Component
         ];
     }
 
-    public function updated(string $property, mixed $value): void
+    public function updatedWebsite(): void
     {
-        // Real-time validation
-        $this->validateOnly($property);
-
         // Auto-populate company name from website if empty
-        if ($property === 'website' && empty($this->name) && ! empty($value)) {
-            $this->extractCompanyNameFromWebsite($value);
+        if (empty($this->name) && ! empty($this->website)) {
+            $this->extractCompanyNameFromWebsite($this->website);
         }
+    }
+
+    public function validateWebsite(): void
+    {
+        $this->validateOnly('website');
+    }
+
+    public function validateName(): void
+    {
+        $this->validateOnly('name');
     }
 
     public function save(): void
@@ -87,9 +88,19 @@ class Create extends Component
         $domain = $this->extractDomain($website);
 
         if ($domain) {
-            // Remove common TLDs and format as title case
-            $name = str_replace(['.com', '.org', '.net', '.io', '.co'], '', $domain);
-            $this->name = ucwords(str_replace(['-', '_'], ' ', $name));
+            $domain = preg_replace('/^www\./', '', $domain);
+
+            $pattern = '/^([a-zA-Z0-9\-]+)(?:\.[a-zA-Z]{2,})*$/';
+            if (preg_match($pattern, $domain, $matches)) {
+                $companyName = $matches[1];
+
+                $companyName = str_replace(['-', '_'], ' ', $companyName);
+
+                $companyName = preg_replace('/^(the|get|my|your|try)\s+/i', '', $companyName);
+                $companyName = preg_replace('/\s+(app|inc|corp|llc|ltd|company|co)$/i', '', $companyName);
+
+                $this->name = ucwords(strtolower(trim($companyName)));
+            }
         }
     }
 

@@ -26,7 +26,8 @@
                 <div class="space-y-4">
                     <!-- Website URL Input -->
                     <flux:input
-                        wire:model.live.debounce.500ms="website"
+                        wire:model.lazy="website"
+                        wire:blur="validateWebsite"
                         label="Company's Website URL"
                         type="url"
                         placeholder="https://example.com"
@@ -40,9 +41,10 @@
 
                     <!-- Company Name Input -->
                     <flux:input
-                        wire:model.live="name"
+                        wire:model.lazy="name"
+                        wire:blur="validateName"
                         label="Company Name"
-                        placeholder="Acme Corp"
+                        placeholder="Will be auto-generated from website"
                         icon="building-office"
                         :invalid="$errors->has('name')"
                         required
@@ -51,39 +53,32 @@
                         <flux:error>{{ $message }}</flux:error>
                     @enderror
 
-                    <!-- Description (Optional) -->
-{{--                    <flux:textarea--}}
-{{--                        wire:model="description"--}}
-{{--                        label="Description (Optional)"--}}
-{{--                        placeholder="Brief description of what the company does..."--}}
-{{--                        rows="3"--}}
-{{--                        description="Optional description to help with analysis"--}}
-{{--                    />--}}
                 </div>
             </flux:fieldset>
 
             <!-- Analysis Options -->
             <flux:fieldset>
-                <flux:fieldset>
-                    <flux:legend>Analysis options</flux:legend>
-                    <div class="space-y-4">
-                        <flux:switch wire:model.live="autoAnalyze" label="Start analysis automatically" description="Immediately begin analyzing this company after adding it" />
-{{--                        <flux:separator variant="subtle" />--}}
-                    </div>
-                </flux:fieldset>
+                <flux:legend>Analysis Options</flux:legend>
+                <div class="space-y-4">
+                    <flux:switch 
+                        wire:model.lazy="autoAnalyze" 
+                        label="Start analysis automatically" 
+                        description="Immediately begin analyzing this company after adding it" 
+                    />
+                </div>
             </flux:fieldset>
 
             <!-- Analysis Preview -->
-            @if($website && !$errors->has('website'))
+            @if($website && filter_var($website, FILTER_VALIDATE_URL) && !$errors->has('website'))
                 <flux:card class="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
                     <div class="flex items-start space-x-3">
                         <flux:icon.information-circle class="w-5 h-5 text-blue-500 mt-0.5" />
                         <div class="flex-1 space-y-2">
                             <flux:heading size="sm" class="text-blue-900 dark:text-blue-100">
-                                Analysis Preview
+                                Ready for Analysis
                             </flux:heading>
                             <flux:text size="sm" class="text-blue-700 dark:text-blue-300">
-                                We'll analyze this website to determine if it's primarily B2B, B2C, or Hybrid by examining:
+                                We'll analyze <strong>{{ $website }}</strong> to determine if it's B2B, B2C, or Hybrid by examining:
                             </flux:text>
                             <div class="grid grid-cols-2 gap-2 text-sm text-blue-600 dark:text-blue-400">
                                 <div class="flex items-center space-x-1">
@@ -96,7 +91,7 @@
                                 </div>
                                 <div class="flex items-center space-x-1">
                                     <flux:icon.currency-dollar class="w-4 h-4" />
-                                    <span>Pricing model</span>
+                                    <span>Pricing patterns</span>
                                 </div>
                                 <div class="flex items-center space-x-1">
                                     <flux:icon.chat-bubble-left-right class="w-4 h-4" />
@@ -124,8 +119,13 @@
                         variant="primary"
                         icon="plus"
                         wire:loading.attr="disabled"
+                        wire:target="save"
                     >
-                        <span wire:loading.remove>{{__('Analyze Company')}}</span>
+                        <span wire:loading.remove wire:target="save">Add Company</span>
+                        <span wire:loading wire:target="save" class="flex items-center space-x-2">
+                            <flux:icon.cog-6-tooth class="w-4 h-4 animate-spin" />
+                            <span>Adding Company...</span>
+                        </span>
                     </flux:button>
                 </div>
             </div>
