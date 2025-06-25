@@ -9,22 +9,24 @@ use Illuminate\Http\RedirectResponse;
 
 class VerifyEmailController extends Controller
 {
+    public function __construct(private readonly \Illuminate\Routing\Redirector $redirector, private readonly \Illuminate\Routing\UrlGenerator $urlGenerator, private readonly \Illuminate\Events\Dispatcher $dispatcher) {}
+
     /**
      * Mark the authenticated user's email address as verified.
      */
     public function __invoke(EmailVerificationRequest $request): RedirectResponse
     {
         if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
+            return $this->redirector->intended($this->urlGenerator->route('dashboard', absolute: false).'?verified=1');
         }
 
         if ($request->user()->markEmailAsVerified()) {
             /** @var \Illuminate\Contracts\Auth\MustVerifyEmail $user */
             $user = $request->user();
 
-            event(new Verified($user));
+            $this->dispatcher->dispatch(new Verified($user));
         }
 
-        return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
+        return $this->redirector->intended($this->urlGenerator->route('dashboard', absolute: false).'?verified=1');
     }
 }
