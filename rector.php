@@ -10,7 +10,6 @@ return RectorConfig::configure()
         __DIR__.'/app/Models',
         __DIR__.'/app/Services',
         __DIR__.'/app/Livewire',
-        __DIR__.'/app/Providers',
         __DIR__.'/app/Enums',
         __DIR__.'/app/Http/Controllers',
         __DIR__.'/app/Http/Middleware',
