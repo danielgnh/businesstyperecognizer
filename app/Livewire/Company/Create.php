@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire\Company;
 
-use App\Models\Company;
+use App\Services\AnalysisService;
+use App\Services\CompanyService;
+use App\Services\WebsiteParsingService;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Attributes\Title;
@@ -42,11 +44,11 @@ class Create extends Component
         ];
     }
 
-    public function updatedWebsite(): void
+    public function updatedWebsite(WebsiteParsingService $websiteParsingService): void
     {
         // Auto-populate company name from website if empty
         if (empty($this->name) && ! empty($this->website)) {
-            $this->extractCompanyNameFromWebsite($this->website);
+            $this->name = $websiteParsingService->extractCompanyNameFromWebsite($this->website);
         }
     }
 
@@ -60,59 +62,27 @@ class Create extends Component
         $this->validateOnly('name');
     }
 
-    public function save(): void
-    {
+    public function save(
+        CompanyService $companyService,
+        AnalysisService $analysisService
+    ): void {
         $this->validate();
 
-        $company = Company::query()->create([
+        $company = $companyService->createCompany([
             'name' => $this->name,
             'website' => $this->website,
-            'domain' => $this->extractDomain($this->website),
         ]);
 
-        // Dispatch analysis job if auto-analyze is enabled
-        if ($this->autoAnalyze) {
-            // TODO: Dispatch analysis job
-            // AnalyzeCompanyJob::dispatch($company);
+        // Start analysis if auto-analyze is enabled
+        $analysisService->startAnalysis($company, $this->autoAnalyze);
 
+        if ($this->autoAnalyze) {
             session()->flash('message', 'Company added successfully and analysis started!');
         } else {
             session()->flash('message', 'Company added successfully!');
         }
 
         $this->redirect(route('companies.show', $company), navigate: true);
-    }
-
-    private function extractCompanyNameFromWebsite(string $website): void
-    {
-        $domain = $this->extractDomain($website);
-
-        if ($domain) {
-            $domain = preg_replace('/^www\./', '', $domain);
-
-            $pattern = '/^([a-zA-Z0-9\-]+)(?:\.[a-zA-Z]{2,})*$/';
-            if (preg_match($pattern, $domain, $matches)) {
-                $companyName = $matches[1];
-
-                $companyName = str_replace(['-', '_'], ' ', $companyName);
-
-                $companyName = preg_replace('/^(the|get|my|your|try)\s+/i', '', $companyName);
-                $companyName = preg_replace('/\s+(app|inc|corp|llc|ltd|company|co)$/i', '', $companyName);
-
-                $this->name = ucwords(strtolower(trim($companyName)));
-            }
-        }
-    }
-
-    private function extractDomain(string $website): string
-    {
-        $parsed = parse_url($website);
-
-        if (isset($parsed['host'])) {
-            return strtolower($parsed['host']);
-        }
-
-        return '';
     }
 
     public function render(): View

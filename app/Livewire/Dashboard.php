@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire;
 
-use App\Enums\CompanyClassification;
-use App\Enums\CompanyStatus;
-use App\Models\Company;
+use App\Services\DashboardService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -18,66 +17,63 @@ class Dashboard extends Component
     public string $search = '';
 
     #[Computed]
+    public function dashboardStats(): array
+    {
+        return app(DashboardService::class)->getDashboardStats();
+    }
+
+    #[Computed]
     public function totalCompanies(): int
     {
-        return \App\Models\Company::query()->count();
+        return $this->dashboardStats()['companies']['total'];
     }
 
     #[Computed]
     public function classifiedCount(): int
     {
-        return \App\Models\Company::query()->whereIn('classification', [
-            CompanyClassification::B2B,
-            CompanyClassification::B2C,
-            CompanyClassification::HYBRID,
-        ])->count();
+        return $this->dashboardStats()['companies']['classified'];
     }
 
     #[Computed]
     public function processingCount(): int
     {
-        return \App\Models\Company::query()->where('status', CompanyStatus::PROCESSING)->count();
+        return $this->dashboardStats()['companies']['processing'];
     }
 
     #[Computed]
     public function pendingCount(): int
     {
-        return \App\Models\Company::query()->where('status', CompanyStatus::PENDING)->count();
+        return $this->dashboardStats()['companies']['pending'];
     }
 
     #[Computed]
     public function accuracyRate(): float
     {
-        // Calculate accuracy based on manual verification vs automated results
-        $totalClassified = $this->classifiedCount();
-
-        if ($totalClassified === 0) {
-            return 0.0;
-        }
-
-        // For now, return a calculated estimate - in production this would compare
-        // manual classifications against automated ones
-        return min(100.0, 85.0 + (($totalClassified / 100) * 2));
+        return $this->dashboardStats()['accuracy_rate'];
     }
 
     #[Computed]
-    public function recentCompanies(): \Illuminate\Database\Eloquent\Collection
+    public function recentCompanies(): Collection
     {
-        return Company::query()
-            ->latest()
-            ->take(5)
-            ->get();
+        return app(DashboardService::class)->getRecentCompanies();
     }
 
     #[Computed]
     public function classificationBreakdown(): array
     {
-        return [
-            'b2b' => \App\Models\Company::query()->where('classification', CompanyClassification::B2B)->count(),
-            'b2c' => \App\Models\Company::query()->where('classification', CompanyClassification::B2C)->count(),
-            'hybrid' => \App\Models\Company::query()->where('classification', CompanyClassification::HYBRID)->count(),
-            'unknown' => \App\Models\Company::query()->where('classification', CompanyClassification::UNKNOWN)->count(),
-        ];
+        return $this->dashboardStats()['classification_breakdown'];
+    }
+
+    #[Computed]
+    public function performanceMetrics(): array
+    {
+        return app(DashboardService::class)->getPerformanceMetrics();
+    }
+
+    #[Computed]
+    public function companiesNeedingAttention(): Collection
+    {
+        return app(DashboardService::class)->getCompaniesNeedingAttention();
     }
 
     public function render(): View

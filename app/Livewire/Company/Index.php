@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Livewire\Company;
 
-use App\Enums\CompanyClassification;
-use App\Enums\CompanyStatus;
-use App\Models\Company;
-use Illuminate\Database\Eloquent\Builder;
+use App\Services\CompanyListService;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -66,7 +64,7 @@ class Index extends Component
     public function updatedSelectAll(bool $value): void
     {
         if ($value) {
-            $this->selectedCompanies = (new \Illuminate\Support\Collection($this->companies()->items()))->pluck('id')->toArray();
+            $this->selectedCompanies = collect($this->companies()->items())->pluck('id')->toArray();
         } else {
             $this->selectedCompanies = [];
         }
@@ -84,7 +82,7 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function analyzeSelected(): void
+    public function analyzeSelected(CompanyListService $companyListService): void
     {
         if (empty($this->selectedCompanies)) {
             $this->addError('selection', 'Please select companies to analyze.');
@@ -92,21 +90,15 @@ class Index extends Component
             return;
         }
 
-        $companies = \App\Models\Company::query()->whereIn('id', $this->selectedCompanies)->get();
+        $processedCount = $companyListService->analyzeSelectedCompanies($this->selectedCompanies);
 
-        foreach ($companies as $company) {
-            // TODO: Dispatch analysis job
-            // AnalyzeCompanyJob::dispatch($company);
-            $company->update(['status' => CompanyStatus::PENDING]);
-        }
-
-        session()->flash('message', count($this->selectedCompanies).' companies queued for analysis.');
+        session()->flash('message', $processedCount.' companies queued for analysis.');
 
         $this->selectedCompanies = [];
         $this->selectAll = false;
     }
 
-    public function deleteSelected(): void
+    public function deleteSelected(CompanyListService $companyListService): void
     {
         if (empty($this->selectedCompanies)) {
             $this->addError('selection', 'Please select companies to delete.');
@@ -114,9 +106,9 @@ class Index extends Component
             return;
         }
 
-        \App\Models\Company::query()->whereIn('id', $this->selectedCompanies)->delete();
+        $deletedCount = $companyListService->deleteSelectedCompanies($this->selectedCompanies);
 
-        session()->flash('message', count($this->selectedCompanies).' companies deleted.');
+        session()->flash('message', $deletedCount.' companies deleted.');
 
         $this->selectedCompanies = [];
         $this->selectAll = false;
@@ -131,28 +123,16 @@ class Index extends Component
     }
 
     #[Computed]
-    public function companies(): \Illuminate\Contracts\Pagination\LengthAwarePaginator
+    public function companies(): LengthAwarePaginator
     {
-        return Company::query()
-            ->when($this->search, function (Builder $query) {
-                $query->where(function (Builder $q) {
-                    $q->where('name', 'like', '%'.$this->search.'%')
-                        ->orWhere('website', 'like', '%'.$this->search.'%')
-                        ->orWhere('domain', 'like', '%'.$this->search.'%');
-                });
-            })
-            ->when($this->statusFilter, function (Builder $query) {
-                $query->where('status', CompanyStatus::from($this->statusFilter));
-            })
-            ->when($this->classificationFilter, function (Builder $query) {
-                if ($this->classificationFilter === 'unclassified') {
-                    $query->whereNull('classification');
-                } else {
-                    $query->where('classification', CompanyClassification::from($this->classificationFilter));
-                }
-            })
-            ->orderBy($this->sortBy, $this->sortDirection)
-            ->paginate($this->perPage);
+        return app(CompanyListService::class)->getCompanies(
+            $this->search,
+            $this->statusFilter,
+            $this->classificationFilter,
+            $this->sortBy,
+            $this->sortDirection,
+            $this->perPage
+        );
     }
 
     #[Computed]
@@ -166,25 +146,29 @@ class Index extends Component
     #[Computed]
     public function statusOptions(): array
     {
-        return (new \Illuminate\Support\Collection(CompanyStatus::cases()))
-            ->mapWithKeys(fn (CompanyStatus $status) => [
-                $status->value => $status->label(),
-            ])
-            ->toArray();
+        return app(CompanyListService::class)->getStatusOptions();
     }
 
     #[Computed]
     public function classificationOptions(): array
     {
-        $options = (new \Illuminate\Support\Collection(CompanyClassification::cases()))
-            ->mapWithKeys(fn (CompanyClassification $classification) => [
-                $classification->value => $classification->label(),
-            ])
-            ->toArray();
+        return app(CompanyListService::class)->getClassificationOptions();
+    }
 
-        $options['unclassified'] = 'Unclassified';
+    #[Computed]
+    public function sortableColumns(): array
+    {
+        return app(CompanyListService::class)->getSortableColumns();
+    }
 
-        return $options;
+    #[Computed]
+    public function filterSummary(): array
+    {
+        return app(CompanyListService::class)->getFilterSummary(
+            $this->search,
+            $this->statusFilter,
+            $this->classificationFilter
+        );
     }
 
     public function render(): View

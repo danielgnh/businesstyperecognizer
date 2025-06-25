@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace App\Livewire\Company;
 
-use App\Enums\CompanyStatus;
 use App\Models\Company;
+use App\Services\AnalysisService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\View\View;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Title;
@@ -23,6 +24,7 @@ class Show extends Component
         $this->company = $company->load([
             'analyses',
             'scrapingJobs',
+            'classificationResults',
         ]);
     }
 
@@ -32,24 +34,29 @@ class Show extends Component
         $this->company->load([
             'analyses',
             'scrapingJobs',
+            'classificationResults',
         ]);
     }
 
-    public function analyzeCompany(): void
+    public function analyzeCompany(AnalysisService $analysisService): void
     {
-        if ($this->company->status === CompanyStatus::PROCESSING) {
+        if ($this->company->status->value === 'processing') {
             session()->flash('error', 'Company is already being analyzed.');
 
             return;
         }
 
-        // Update status to pending
-        $this->company->update(['status' => CompanyStatus::PENDING]);
-
-        // TODO: Dispatch analysis job
-        // AnalyzeCompanyJob::dispatch($this->company);
+        $analysisService->startAnalysis($this->company, true);
 
         session()->flash('message', 'Analysis started for '.$this->company->name);
+        $this->refreshCompany();
+    }
+
+    public function scheduleReanalysis(AnalysisService $analysisService): void
+    {
+        $analysisService->scheduleReanalysis($this->company);
+
+        session()->flash('message', 'Company scheduled for re-analysis.');
         $this->refreshCompany();
     }
 
@@ -59,15 +66,21 @@ class Show extends Component
     }
 
     #[Computed]
+    public function analysisSummary(): array
+    {
+        return app(AnalysisService::class)->getAnalysisSummary($this->company);
+    }
+
+    #[Computed]
     public function latestAnalysis()
     {
         return $this->company->analyses()
-            ->latest()
+            ->latest('scraped_at')
             ->first();
     }
 
     #[Computed]
-    public function classificationHistory()
+    public function classificationHistory(): Collection
     {
         return $this->company->classificationResults()
             ->latest()
@@ -76,7 +89,7 @@ class Show extends Component
     }
 
     #[Computed]
-    public function recentScrapingJobs()
+    public function recentScrapingJobs(): Collection
     {
         return $this->company->scrapingJobs()
             ->latest()
@@ -111,17 +124,37 @@ class Show extends Component
     }
 
     #[Computed]
+    public function confidenceColor(): string
+    {
+        return match ($this->confidenceLevel()) {
+            'high' => 'green',
+            'medium' => 'yellow',
+            'low' => 'red',
+            default => 'gray'
+        };
+    }
+
+    #[Computed]
     public function indicators(): array
     {
-        $allIndicators = [];
+        return [
+            'b2b' => app(AnalysisService::class)->getIndicatorsByType($this->company, 'b2b_indicators'),
+            'b2c' => app(AnalysisService::class)->getIndicatorsByType($this->company, 'b2c_indicators'),
+            'technical' => app(AnalysisService::class)->getIndicatorsByType($this->company, 'technical_indicators'),
+            'content' => app(AnalysisService::class)->getIndicatorsByType($this->company, 'content_indicators'),
+        ];
+    }
 
-        foreach ($this->company->analyses as $analysis) {
-            if (isset($analysis->indicators)) {
-                $allIndicators = array_merge($allIndicators, $analysis->indicators);
-            }
-        }
+    #[Computed]
+    public function isAnalysisComplete(): bool
+    {
+        return app(AnalysisService::class)->isAnalysisComplete($this->company);
+    }
 
-        return $allIndicators;
+    #[Computed]
+    public function overallConfidence(): float
+    {
+        return app(AnalysisService::class)->calculateOverallConfidence($this->company);
     }
 
     public function render(): View
