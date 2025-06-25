@@ -67,8 +67,8 @@
         ],
         "format": [
             "./vendor/bin/phpstan analyse --memory-limit=2G",
-            ".vendor/bin/pint",
-            ".vendor/bin/rector process"
+            "./vendor/bin/pint",
+            "./vendor/bin/rector process"
         ]
     },
     "extra": {
