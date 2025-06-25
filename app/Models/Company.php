@@ -63,6 +63,12 @@ class Company extends Model
         return $this->hasOne(ClassificationResult::class)->latestOfMany();
     }
 
+    // Alias for the latest classification result
+    public function latestClassificationResult(): HasOne
+    {
+        return $this->latestClassification();
+    }
+
     public function scrapingJobs(): HasMany
     {
         return $this->hasMany(ScrapingJob::class);
