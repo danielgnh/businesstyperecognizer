@@ -406,5 +406,5 @@ tests/
 
 
 After code implementation:
-run command: composer format which includes larastan, pint, and  recotr.
+run composer scripts: 'composer format', 'composer check' which includes larastan, pint, and  rector.
 Remember: Always prioritize code readability, maintainability, and testability over clever or complex solutions.
