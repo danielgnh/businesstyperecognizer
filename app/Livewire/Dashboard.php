@@ -25,31 +25,31 @@ class Dashboard extends Component
     #[Computed]
     public function totalCompanies(): int
     {
-        return data_get($this->dashboardStats(),'total_companies', 0);
+        return data_get($this->dashboardStats(), 'total_companies', 0);
     }
 
     #[Computed]
     public function classifiedCount(): int
     {
-        return data_get($this->dashboardStats(),'classified_count', 0);
+        return data_get($this->dashboardStats(), 'classified_count', 0);
     }
 
     #[Computed]
     public function processingCount(): int
     {
-        return data_get($this->dashboardStats(),'processing_count', 0);
+        return data_get($this->dashboardStats(), 'processing_count', 0);
     }
 
     #[Computed]
     public function pendingCount(): int
     {
-        return data_get($this->dashboardStats(),'pending_count', 0);
+        return data_get($this->dashboardStats(), 'pending_count', 0);
     }
 
     #[Computed]
     public function accuracyRate(): float
     {
-        return data_get($this->dashboardStats(),'accuracy_rate', 0);
+        return data_get($this->dashboardStats(), 'accuracy_rate', 0);
     }
 
     #[Computed]
