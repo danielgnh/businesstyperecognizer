@@ -11,7 +11,7 @@ use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
-class CompanyListService
+readonly class CompanyListService
 {
     public function __construct(
         private CompanyService $companyService,
@@ -231,7 +231,7 @@ class CompanyListService
             'by_status' => $companies->groupBy('status')->map->count()->toArray(),
             'by_classification' => $companies->groupBy('classification')->map->count()->toArray(),
             'avg_confidence' => $companies->whereNotNull('confidence_score')->avg('confidence_score'),
-            'needs_analysis' => $companies->where('status', CompanyStatus::PENDING)->count(),
+            'needs_analysis' => $companies->where('status', CompanyStatus::PENDING->value)->count(),
         ];
     }
 

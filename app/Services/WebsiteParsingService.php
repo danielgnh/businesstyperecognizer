@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-class WebsiteParsingService
+final readonly class WebsiteParsingService
 {
     /**
      * Extract domain from website URL

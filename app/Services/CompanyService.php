@@ -6,13 +6,11 @@ namespace App\Services;
 
 use App\Models\Company;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Log\Logger;
 
 final readonly class CompanyService
 {
     public function __construct(
-        private WebsiteParsingService $websiteParsingService,
-        private Logger $logger
+        private WebsiteParsingService $websiteParsingService
     ) {}
 
     /**
@@ -108,7 +106,7 @@ final readonly class CompanyService
 
         if ($errorMessage) {
             // TODO: Log error or store in separate error tracking table
-            $this->logger->error('Company analysis failed', [
+            logger()->error('Company analysis failed', [
                 'company_id' => $company->id,
                 'error' => $errorMessage,
             ]);

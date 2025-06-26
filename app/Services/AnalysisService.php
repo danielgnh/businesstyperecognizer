@@ -7,14 +7,12 @@ namespace App\Services;
 use App\Models\Company;
 use App\Models\CompanyAnalysis;
 use App\Models\ScrapingJob;
-use Illuminate\Log\Logger;
 use Illuminate\Support\Collection;
 
 final readonly class AnalysisService
 {
     public function __construct(
-        private CompanyService $companyService,
-        private Logger $logger
+        private CompanyService $companyService
     ) {}
 
     /**
@@ -37,7 +35,7 @@ final readonly class AnalysisService
         //     new ScrapeGoogleBusinessJob($company),
         // ])->dispatch();
 
-        $this->logger->info('Analysis started for company', [
+        logger()->info('Analysis started for company', [
             'company_id' => $company->id,
             'company_name' => $company->name,
         ]);
