@@ -25,31 +25,31 @@ class Dashboard extends Component
     #[Computed]
     public function totalCompanies(): int
     {
-        return $this->dashboardStats()['companies']['total'];
+        return data_get($this->dashboardStats(),'total_companies', 0);
     }
 
     #[Computed]
     public function classifiedCount(): int
     {
-        return $this->dashboardStats()['companies']['classified'];
+        return data_get($this->dashboardStats(),'classified_count', 0);
     }
 
     #[Computed]
     public function processingCount(): int
     {
-        return $this->dashboardStats()['companies']['processing'];
+        return data_get($this->dashboardStats(),'processing_count', 0);
     }
 
     #[Computed]
     public function pendingCount(): int
     {
-        return $this->dashboardStats()['companies']['pending'];
+        return data_get($this->dashboardStats(),'pending_count', 0);
     }
 
     #[Computed]
     public function accuracyRate(): float
     {
-        return $this->dashboardStats()['accuracy_rate'];
+        return data_get($this->dashboardStats(),'accuracy_rate', 0);
     }
 
     #[Computed]
@@ -61,7 +61,8 @@ class Dashboard extends Component
     #[Computed]
     public function classificationBreakdown(): array
     {
-        return $this->dashboardStats()['classification_breakdown'];
+        // Remove non-integer values from the classification breakdown (We have percentages included in the service)
+        return array_filter($this->dashboardStats()['classification_breakdown'], fn ($value) => is_int($value));
     }
 
     #[Computed]
