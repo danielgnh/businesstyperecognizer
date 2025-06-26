@@ -27,7 +27,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->defaults('statusFilter', 'processing');
     });
 
-    Route::get('/profile', \App\Livewire\Profile\Index::class)->name('profile');
     Route::get('/settings', \App\Livewire\Company\Index::class)->name('settings');
 });
 
