@@ -23,6 +23,11 @@ use Illuminate\Support\Carbon;
  * @property CompanyStatus $status
  * @property CompanyClassification|null $classification
  * @property float|null $confidence_score
+ * @property string|null $summary
+ * @property string|null $branch
+ * @property string|null $scope
+ * @property array|null $keywords
+ * @property Carbon|null $ai_analyzed_at
  * @property Carbon|null $last_analyzed_at
  * @property Carbon $created_at
  * @property Carbon $updated_at
@@ -43,6 +48,8 @@ class Company extends Model
             'status' => CompanyStatus::class,
             'classification' => CompanyClassification::class,
             'confidence_score' => 'decimal:2',
+            'keywords' => 'array',
+            'ai_analyzed_at' => 'datetime',
             'last_analyzed_at' => 'datetime',
         ];
     }
@@ -103,6 +110,21 @@ class Company extends Model
     public function scopeRecentlyAnalyzed(Builder $query, int $days = 30): Builder
     {
         return $query->where('last_analyzed_at', '>=', now()->subDays($days));
+    }
+
+    public function scopeAiAnalyzed(Builder $query): Builder
+    {
+        return $query->whereNotNull('ai_analyzed_at');
+    }
+
+    public function scopeNotAiAnalyzed(Builder $query): Builder
+    {
+        return $query->whereNull('ai_analyzed_at');
+    }
+
+    public function scopeWithBranch(Builder $query, string $branch): Builder
+    {
+        return $query->where('branch', $branch);
     }
 
     // Accessors & Mutators
@@ -212,5 +234,35 @@ class Company extends Model
         ]);
 
         return $result;
+    }
+
+    // AI Analysis Helper Methods
+    public function isAiAnalyzed(): bool
+    {
+        return $this->ai_analyzed_at !== null;
+    }
+
+    public function needsAiAnalysis(int $days = 90): bool
+    {
+        if (!$this->ai_analyzed_at) {
+            return true;
+        }
+
+        return $this->ai_analyzed_at->lt(now()->subDays($days));
+    }
+
+    public function hasKeywords(): bool
+    {
+        return !empty($this->keywords);
+    }
+
+    public function getKeywordsString(): string
+    {
+        return $this->keywords ? implode(', ', $this->keywords) : '';
+    }
+
+    public function hasBranchAndScope(): bool
+    {
+        return !empty($this->branch) && !empty($this->scope);
     }
 }
