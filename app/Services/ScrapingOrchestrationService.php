@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Jobs\Scrape\CompanyAIAnalysisJob;
 use App\Jobs\Scrape\SocialMediaScraperJob;
 use App\Jobs\Scrape\WebsiteContentScraperJob;
 use App\Models\Company;
@@ -58,6 +59,10 @@ final readonly class ScrapingOrchestrationService
         if ($delay) {
             $job->delay($delay);
         }
+
+        // Dispatch AI analysis job (with additional delay to ensure other jobs complete)
+        $aiDelay = $delayMinutes > 0 ? now()->addMinutes($delayMinutes + 2) : now()->addMinutes(2);
+        CompanyAIAnalysisJob::dispatch($company)->delay($aiDelay);
 
         // Future: Add more scraping jobs here
         // WebsiteContentAnalysisJob::dispatch($company)
