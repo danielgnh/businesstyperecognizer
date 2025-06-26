@@ -12,11 +12,12 @@ use Illuminate\Support\Collection;
 final readonly class AnalysisService
 {
     public function __construct(
-        private CompanyService $companyService
+        private CompanyService $companyService,
+        private ScrapingOrchestrationService $scrapingService
     ) {}
 
     /**
-     * Start analysis process for a company
+     * Start an analysis process for a company
      */
     public function startAnalysis(Company $company, bool $autoAnalyze = true): void
     {
@@ -27,17 +28,13 @@ final readonly class AnalysisService
         // Mark company as processing
         $this->companyService->markAsProcessing($company);
 
-        // TODO: Dispatch analysis jobs
-        // This will be implemented when we create the job classes
-        // Bus::batch([
-        //     new ScrapeWebsiteJob($company),
-        //     new ScrapeSocialMediaJob($company),
-        //     new ScrapeGoogleBusinessJob($company),
-        // ])->dispatch();
+        // Use the scraping orchestration service to manage the analysis workflow
+        $this->scrapingService->startCompanyAnalysis($company);
 
         logger()->info('Analysis started for company', [
             'company_id' => $company->id,
             'company_name' => $company->name,
+            'website' => $company->website,
         ]);
     }
 
