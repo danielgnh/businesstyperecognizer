@@ -12,6 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Throwable;
 
 class WebsiteContentScraperJob implements ShouldQueue
 {
@@ -27,18 +28,23 @@ class WebsiteContentScraperJob implements ShouldQueue
         public Company $company
     ) {}
 
+    /**
+     * @throws Throwable
+     * @throws WebsiteContentJobException
+     */
     public function handle(
         WebsiteContentCacheService $cacheService,
         WebsiteContentFetchService $fetchService
     ): void {
         try {
-            if (! $this->company->website) {
-                throw new WebsiteContentJobException(
+            throw_if(
+                !$this->company->website,
+                new WebsiteContentJobException(
                     'Company has no website for content scraping',
                     0,
                     $this->company
-                );
-            }
+                )
+            );
 
             // Check if content is already cached and extend TTL if it exists
             if ($cacheService->checkAndExtendIfCached($this->company->website)) {

@@ -12,7 +12,7 @@ use App\Models\ScrapingJob;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
-class DashboardService
+final readonly class DashboardService
 {
     public function __construct(
         private CompanyService $companyService
