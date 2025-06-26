@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace App\Exceptions;
 
 use App\Jobs\Scrape\Exceptions\ScrapingJobException;
+use App\Exceptions\CompanyAnalysisException;
+use App\Exceptions\SocialMediaExtractionException;
+use App\Exceptions\WebsiteContentException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Throwable;
 
@@ -36,6 +39,10 @@ class Handler extends ExceptionHandler
 
         $this->reportable(function (ScrapingJobException $e) {
             logger()->error('Scraping job exception occurred', $e->getContext());
+        });
+
+        $this->reportable(function (CompanyAnalysisException $e) {
+            logger()->error('Company analysis exception occurred', $e->getContext());
         });
 
         $this->reportable(function (Throwable $e) {
