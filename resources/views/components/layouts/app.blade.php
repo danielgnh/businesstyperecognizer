@@ -57,12 +57,6 @@
 
                 <flux:menu>
                     <flux:menu.item
-                        icon="user-circle"
-                        href="{{ route('profile') }}"
-                    >
-                        Profile
-                    </flux:menu.item>
-                    <flux:menu.item
                         icon="cog-6-tooth"
                         href="{{ route('settings') }}"
                     >
