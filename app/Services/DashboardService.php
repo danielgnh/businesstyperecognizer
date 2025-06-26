@@ -10,6 +10,7 @@ use App\Models\Company;
 use App\Models\CompanyAnalysis;
 use App\Models\ScrapingJob;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
 class DashboardService
 {
@@ -272,7 +273,7 @@ class DashboardService
      */
     public function getConfidenceDistribution(): array
     {
-        return \Illuminate\Support\Facades\DB::table('companies')
+        return DB::table('companies')
             ->whereNotNull('confidence_score')
             ->selectRaw('
                 CASE
