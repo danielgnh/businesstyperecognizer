@@ -18,6 +18,7 @@ final readonly class AnalyzeCompanyWithAIAction
 
     /**
      * Execute company AI analysis
+     * @throws CompanyAnalysisException
      */
     public function execute(Company $company): bool
     {
@@ -25,13 +26,14 @@ final readonly class AnalyzeCompanyWithAIAction
             // Get website content from cache
             $websiteContent = $this->cacheService->getCachedContent($company->website);
 
-            if (!$websiteContent) {
-                throw new CompanyAnalysisException(
+            throw_if(
+                !$websiteContent,
+                 new CompanyAnalysisException(
                     'Website content not available for AI analysis',
                     0,
                     $company
-                );
-            }
+                )
+            );
 
             // Analyze with AI
             $analysis = $this->aiService->analyzeCompany($company, $websiteContent);
@@ -70,4 +72,4 @@ final readonly class AnalyzeCompanyWithAIAction
             throw $analysisException;
         }
     }
-} 
+}
